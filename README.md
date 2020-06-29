@@ -203,3 +203,44 @@ public class WaterSpray {
 물은 어떻게 채울까? 수도꼭지가 필요하다. 그렇다면 그 수도꼭지에서 물은 자동으로 나오나? 수도꼭지에 연결된 파이프, 파이프에 연결되어 있는 송수관, 정화시설, 강... 끝이 없어진다.
 
 **필요한 것만 만든다** 어디선가 선을 그어야 한다.
+
+## 모델링 5: 화분
+
+### 화분 만들기
+클래스 이름은 PlowerPot 으로 한다. 화분의 상태를 나타내는 부분은 하루에 뿌린 물의 양에 따른 화분의 생사유무(alive) 이다. 살았는지 죽었느지 기억할 변수가 필요하다. alive 의 기본값은 true 이다. 개체를 생성할 때 설정해준다. 그리고 **alive 의 setter 는 없다.** 중요한 부분이다. 한번 죽은 꽃은 되살릴 수 없다. setter 를 허용하면 값을 마음대로 변경할 수 있게 된다. 
+
+```text
+FlowerPot
+==========
+-alive: boolean = true
+-minDailyWaterInMl: int
+----------
++FlowerPot(int)
++inAlive(): boolean
++getMinDailyWater(): int
+```
+
+- minDailyWaterInMl: 매일 필요한 최소 물의 양(ml). 생성자에서 값을 설정한다.
+- 꽃마다 다른 양이 필요하니 생성자를 통해 초기화한다.
+- getter 는 추가해도 큰 문제없으니 추가한다.
+- setter는 역시 추가하지 않는다.
+
+```java
+public class FlowerPot {
+	private boolean alive = true;
+	private final int minDailyWaterInMl;
+
+	public FlowerPot(int minDailyWaterInMl) {
+		this.minDailyWaterInMl = minDailyWaterInMl;
+	}
+
+
+	public int getMinDailyWaterInMl() {
+		return minDailyWaterInMl;
+	}
+}
+```
+
+
+### 화분에 필요한 동작
+화분에는 물을 줄 수 있어야 한다. `addWater(int)` 메서드를 추가한다.
