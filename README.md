@@ -243,4 +243,67 @@ public class FlowerPot {
 
 
 ### 화분에 필요한 동작
-화분에는 물을 줄 수 있어야 한다. `addWater(int)` 메서드를 추가한다.
+화분에는 물을 줄 수 있어야 한다. `addWater(int)` 메서드를 추가한다. 코드를 작성해 돌려본다.
+
+- 물이 최대 100ml 들어가는 WaterSpray를 만들고 물을 가득 채운다.
+- 하루에 살려면 5ml 물이 필요한 화분을 만든다.
+- 화분에 물을 준다.
+- 화분의 생존을 확인한다.
+
+
+**화분에_물주기_예1**
+
+```java
+final WaterSpray waterSpray = new WaterSpray(100);
+waterSpray.fillUp();
+
+final FlowerPot pot = new FlowerPot(5);
+
+int water = waterSpray.getRemainingWaterInMl();
+waterSpray.spray();
+water -= waterSpray.getRemainingWaterInMl();
+
+pot.addWater(water);
+
+assertThat(pot.isAlive()).isTrue();
+```
+
+정상적˚으로 수행된다. 그러면 다음 코드는 어떨까?
+
+- 물이 최대 100ml 들어가는 WaterSpray를 만들고 물을 가득 채운다.
+- 하루에 살려면 10ml 물이 필요한 화분을 만든다.
+- 이하 위와 동일
+
+1번과 달라진 것은 화분이 필요한 물의 양이다. 어떻게 해결할까? 물을 2번 주자!
+
+
+**화분에_물주기_예2**
+
+```java
+final WaterSpray waterSpray = new WaterSpray(100);
+waterSpray.fillUp();
+
+final FlowerPot pot = new FlowerPot(10);
+
+for (int i = 0; i < 2; ++i) {
+    int water = waterSpray.getRemainingWaterInMl();
+    waterSpray.spray();
+    water -= waterSpray.getRemainingWaterInMl();
+
+    pot.addWater(water);
+}
+
+assertThat(pot.isAlive()).isTrue();     // 실패
+```
+
+예상과는 달리 화분은 죽었다. 왜? `FlowerPot.addWater(int)` 코드를 보자.
+
+```java
+public void addWater(int amountInMl) {
+    if (amountInMl < minDailyWaterInMl) {
+        alive = false;
+    }
+}
+```
+
+물을 주는 즉시 화분의 생존을 확인한다. 5ml 씩 두번 뿌리는 것을 허용하지 않겠다는 뜻이다. 다른 말로 하면 **한번 뿌리면 하루가 지났다고 가정**하는 것이다. 한번 뿌리면 하루다. 즉, 함수 호출 횟수와 날짜를 동일화 시킨 것이다. 의도치 않은 사항이다. 내가 원하던 것이 아니다. 코드를 어떻게 수정해야할까? 
