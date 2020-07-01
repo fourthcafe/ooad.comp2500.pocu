@@ -359,3 +359,130 @@ FlowerPot
 ```
 
 그리고 하나 짚고 넘어가야 할 부분이 있다. `liveAnotherDay()` 메서드는 `setter`없이 인스턴스의 상태 `alive`를 변경한다. 이처럼 개체 스스로 자기가 필요한 판단을 할 수 있어야 한다.
+
+
+## 모델링 6: OO적 상호작용
+작동하는 코드를 완성했다. 잘 돌아간다! 그럼 이제 개발 완료일까? 물을 뿌리는 부분의 코드를 다시 보자.
+
+```java
+int water = waterSpray.getRemainingWaterInMl();
+waterSpray.spray();
+water -= waterSpray.getRemainingWaterInMl();
+
+pot.addWater(water);
+```
+
+이 코드의 위치는 어디인가? **application** 이다. 호출자가 다음 일을 직접 수행하고 있다.
+
+1. 분무기에서 물을 분사한다.
+2. 몇 ml 가 분사되었는지 확인한다.
+3. 화분에 분사된 물의 양을 추가한다.
+
+즉 waterSpray 나 FlowerPot 을 그냥 **데이터 저장소**로만 쓴 거나 다름 없다. 구조체 사고방식에서 아직 벗어나지 못한 것이다. 데이터를 바꾸는 메서드 몇 개 있는 게 전부일 뿐이다. **두 개체 사이에는 상호작용이나 의존 관계가 전혀 없다.** 프로그래머, 혹은 application.java 클래스가 두 클래스 사이에서 중재를 해주고 있다. 개체지향 프로그래밍은, 프로그램은 여러 개체들의 상호작용으로 본다.
+
+### 두 개체가 직접 상호작용하도록 바꿔보자
+나는 분무기를 사용해서 화분에 물을 주길 원한다. 문제는 다음 두 메서드이다.
+
+- WaterSpray.spray()
+- FlowerPot.addWater(int)
+
+두 메서드 모두 범용적 자료형인 int를 사용한다. int 형 데이터를 받아서 서로 호출하고 있어서 누구나 이 메서드를 마음대로 호출할 수 있다. 개체들끼리 상호작용을 하게 할 수 있게 클래스 설계를 바꿔보자.
+
+
+### 방법 1: 분무기를 화분에 대고 뿌린다
+`WaterSpray.sprayTo(FlowerPot)`
+
+```java
+public class WaterSpray {
+    ...
+
+    public void sprayTo(FlowerPot pot) {
+		final int amountWater = Math.min(this.remainingWaterInMl, 5);
+		pot.addWater(amountWater);
+
+		this.remainingWaterInMl -= amountWater;
+	}
+}
+```
+
+아래는 호출자 코드이다. `sprayTo(FlowerPot)` 메서드를 사용하면 모든 계산이 **메서드 내부**에서 끝나게 된다. 따라서 외부에서는 이 메서드를 호출만 하면 되니 호출자 코드가 간단해진다. 데이터를 숨겼으니 캡슐화가 잘되었고 내부 구현을 숨겼으니 추상화도 잘되었다. 추가로 `spray()` 메서드는 사용할 곳이 없어졌으니 사용자의 선택에 의해 삭제할 수도 있다.
+
+```java
+// 변경 전
+for (int i = 0; i < 2; ++i) {∆
+    int water = waterSpray.getRemainingWaterInMl();
+    waterSpray.spray();
+    water -= waterSpray.getRemainingWate∆rInMl();
+
+    pot.addWater(water);
+}
+
+
+// 변경 후
+for (int i = 0; i < 2; ++i) {
+    waterSpray.sprayTo(pot);
+}
+```
+
+
+### 방법 2: 분무기를 줄 테니 화분이 알아서 뿌려라
+`FlowerPot.addWater(WaterSpray spray)`
+
+인자로 WaterSpray 를 받아와서 자신이 알아서 스스로에게 물을 주는 방식이다. 다음 코드는 이전에 호출자(application.java)에서 봤었던 코드와 유사하다. 하지만 호출자보다는, FlowerPot 이 **자기 스스로 WaterSpray 를 어떻게 사용해야 하는지** 알고 있다는 점에서 더 개체지향적이다.
+
+```java
+public class FlowerPot {
+    ...
+
+	public void addWater(WaterSpray waterSpray) {
+		int water = waterSpray.getRemainingWaterInMl();
+		waterSpray.spray();
+		water -= waterSpray.getRemainingWaterInMl();
+
+		this.dailyWaterReceived += water;
+	}
+}
+```
+
+다음은 호출자 코드를 보자. 방법 1과 마찬가지로 호출자 코드가 간단해졌다.
+
+```java
+// 변경 전
+for (int i = 0; i < 2; ++i) {
+    int water = waterSpray.getRemainingWaterInMl();
+    waterSpray.spray();
+    water -= waterSpray.getRemainingWaterInMl();
+
+    pot.addWater(water);
+}
+
+
+// 변경 후
+for (int i = 0; i < 2; ++i) {
+    pot.addWater(waterSpray);
+}
+```
+
+
+### 두 방법 중 뭐가 좋은가?
+1. 분무기를 화분에 주고 뿌린다.
+2. 분무기를 줄테니 화분이 알아서 뿌려라.
+
+정답이 없는 문제이고 우리에게 익숙한 생각은 1번이다. 2번은 뭔가 어색하다. 화분이 무슨 수로 분무기를 가져다 샤워을 해? **하지만!**
+
+**2번이 좀 더 개체지향적인 생각에 가깝다.**
+
+### 2번을 선택했을 시의 장점
+- FlowerPot.addWater(int) 를 제거할 수 있다.
+- 분무기만 화분에 물을 줄 수 있다.
+
+`addWater(int)` 메서드가 있었던 이유는 결과적으로 몇 ml를 뿌리는지 알아야했기 때문이다. `addWater(WaterSpray)` 를 사용하여 WaterSpray를 받아오면 스스로가 알아서 뿌리고 끝나기 때문에 몇 ml를 더한다는 로직 자체가 메서드 안에 숨게 된다. 그래서 WaterSpray를 주지 않거나 WaterSpray에 충분히 물이 들어있지 않으면 물을 주지 못하게 된다. 스스로를 책임질 수 있어서 좋고, 어디로부터 물을 공급받는지 특정지을 수 있어서 좋다.
+
+OO(Object Oriented)는 약간의 사고방식 변화가 필요하다. 위의 구현대로라면 마치 화분이 스스로 살아 움직이는 생명체같이 느껴져 뭔가 어색하다는 생각이 든다. 실세계의 물체는 완벽히 수동적인 존재로서 누군가 조작해 줘야 한다. OO 세계에서는 그렇지 않다. 자기 주관을 가지고 스스로를 책임질 수 있는 주체라고 생각해야 한다. **WaterSpray를 줄테니 알아서 뿌려** 라고 할 수 있는 것까지는 해야된다고 사고방식을 변화하도록 노력하자.
+
+
+### 한번 더 짚어보기
+- 나름 복잡한 계산 로직을 클래스 안에 숨겼다
+    - FlowerPot.addWater(WaterSpray)
+- addWater(int) 함수를 제거했다
+    - 외부에서 자기 마음대로 많은 양의 물을 붓거나 WaterSpray에서 양을 줄이지 않고 붓는 행위를 할 수 없게 제약했다.

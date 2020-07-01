@@ -18,12 +18,16 @@ public class FlowerPot {
 	}
 
 
-	public void addWater(int amountInMl) {
-		this.dailyWaterReceived += amountInMl;
+	public void addWater(WaterSpray waterSpray) {
+		int water = waterSpray.getRemainingWaterInMl();
+		waterSpray.spray();
+		water -= waterSpray.getRemainingWaterInMl();
+
+		this.dailyWaterReceived += water;
 	}
 
 
-	public void liveAnoterDay() {
+	public void liveAnotherDay() {
 		if (this.dailyWaterReceived < this.minDailyWaterInMl) {
 			this.alive = false;
 		}

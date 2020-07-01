@@ -24,7 +24,7 @@ public class ApplicationTest {
 
 
 	@Test
-	public void 화분에_물주기_예2() {
+	public void 하루에_10ml_필요한_화분에_5ml씩_두번주기() {
 		final WaterSpray waterSpray = new WaterSpray(100);
 		waterSpray.fillUp();
 
@@ -57,7 +57,39 @@ public class ApplicationTest {
 			pot.addWater(water);
 		}
 
-		pot.liveAnoterDay();
+		pot.liveAnotherDay();
+		assertThat(pot.isAlive()).isTrue();
+	}
+
+
+	@Test
+	public void 분무기를_화분에_대고_뿌린다() {
+		final WaterSpray waterSpray = new WaterSpray(100);
+		waterSpray.fillUp();
+
+		final FlowerPot pot = new FlowerPot(10);
+
+		for (int i = 0; i < 2; ++i) {
+			waterSpray.sprayTo(pot);
+		}
+
+		pot.liveAnotherDay();
+		assertThat(pot.isAlive()).isTrue();
+	}
+
+
+	@Test
+	public void 분무기를_줄테니_화분이_알아서_뿌려라() {
+		final WaterSpray waterSpray = new WaterSpray(100);
+		waterSpray.fillUp();
+
+		final FlowerPot pot = new FlowerPot(10);
+
+		for (int i = 0; i < 2; ++i) {
+			pot.addWater(waterSpray);
+		}
+
+		pot.liveAnotherDay();
 		assertThat(pot.isAlive()).isTrue();
 	}
 }
