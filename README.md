@@ -486,3 +486,120 @@ OO(Object Oriented)는 약간의 사고방식 변화가 필요하다. 위의 구
     - FlowerPot.addWater(WaterSpray)
 - addWater(int) 함수를 제거했다
     - 외부에서 자기 마음대로 많은 양의 물을 붓거나 WaterSpray에서 양을 줄이지 않고 붓는 행위를 할 수 없게 제약했다.
+
+
+## 모델링 7: 부품으로 분리해보기
+현재의 코드는 유연성이 떨어진다. 화분에 물을 주는 행위는 WaterSpray가 아닌 컵을 통해서도 줄 수 있다. 하지만 지금 구조에서는 불가능하다. 이전의 `int`를 사용한 방식은 굉장히 유연하고 범용적인 방식이었고 지금의 코드는 굉장히 특화된 방식이다. 추가하고 싶으면 `addWater(Cup)` 처럼 다른 메서드를 추가하거나 이 후 배우는 추상 클래스와 다형성을 통해서도 해결하는 방법을 익힐 수 있다.
+
+### 재활용성과 유연성
+**재활용**과 **유연성** 은 이 경우에 유사한 개념이다. 유연성이 떨어진다는 것은 재활용하기가 어렵다는 뜻이고, 여기저기에서 사용하기 어렵다는 것이다. 분무기는 머리와 몸통, 2개의 부품으로 분리할 수 있다. 머리와 몸통을 따로 떼어 각기 다른 곳에서 사용할 수 있게 코드를 개선하여 재활용성과 유연성을 높여보자. 분무기를 두 부품으로 분리한 후에 각자의 스펙을 생각해보자.
+
+- 머리
+    - 손잡이
+    - 호스
+    - 손잡이를 누르면 정해진 만큼의 물이 나간다.
+    - ON/OFF나 분사 양 조절 기능이 있을수 있다.
+    - 손잡이 모양도 달라질 수 있다.
+
+- 몸통
+    - 물을 저장한다. (용량이 있음)
+    - 물통을 큰 거나 작은 걸로 바꿀수 있다.
+
+하지만 이건 너무 나갔다. ON/OFF 나 손잡이의 모양은 지금 구현하고 있는 코드에서 고려할 필요가 없는 내용이다. 머리와 몸통을 바꿔 낄 수 있는 내용만을 스펙에 추가하자.
+
+
+### 상태에 따라 분리한 버전
+- 한 곳에 있던 상태를 머리와 몸통으로 나눈다.
+    - 머리: SprayHead
+    - 몸통: SprayBottle
+- 관련 메서드도 각 클래스로 옮긴다.
+
+- 특이사항
+    - SprayHead에는 `sprayAmount` 멤버 변수가 생겼다. 얼마만큼의 물을 뿌릴 것인지 기존에는 5ml로 하드코딩 되어 있던 부분을 변수화했다.
+    - SprayBottle에는 물을 채우는 메서드를 `addWater(int)` 로 구현했다. 기존의 코드로 롤백했다.
+
+```text
+WaterSpray
+==========
+-head: SprayHead
+-body: SprayBottle
+----------
++WaterSpray(SprayHead, SprayBottle)
++gettHead(): SprayHead
++getBody(): SprayBottle
++setHead(SprayHead)
++setBody(SprayBottle)
+
+
+SprayHead
+==========
+-sprayAmount: int
+----------
++SprayHead(int)
++spray()
+
+
+SprayBottle
+==========
+-capacity: int
+-remainingWater: int = 0
+----------
++SprayBottle(int)
++getCapacity(): int
++getREmainingWater(): int
++addWater(int)
++fillUp()
+```
+
+각자의 개체로 인정하면 **집합(aggregation)** 이라 한다. WaterSpray는 머리와 몸통을 합쳐 놓은 **집합**이다. 컴포지션이 아니라 집합이라는 얘기는 이 둘을 따로 분리해서 사용할 수 있다는 얘기다. 분리할 수 있고 따로 생존할 수 있다면 따로 `getter/setter` 를 만들어 주는 게 맞는 것 같다. 집합이 아니라 WaterSpray와 같이 살고 죽는 컴포지션의 개념으로 봤다면 만들지 않았을 가능성이 매우 크다.
+
+```java
+SprayHead head = new SprayHead(5);
+SprayBottle body = new SprayBottle(100);
+body.fillUp();
+WaterSpray waterSpray = new WaterSpray(head, body);
+```
+
+이 방식은 여러 종류의 머리와 몸통을 조합할 수 있다는 장점이 있다.
+
+```java
+// 한번에 물이 적게 나가지만 물통이 큼
+SprayHead headSlow = new SprayHead(1);
+SprayBottle bottleXl = new SprayBottle(150);
+
+// 한번에 많은 물이 나가고 물통이 작음
+SprayHead headFast = new SprayHead(50);
+SprayBottle bottleL = new SprayBottle(50);
+```
+
+그럼 이 코드를 FlowerPot에 사용해보자
+
+```java
+public void addWater(WaterSpray waterSpray) {
+    final WaterHead head = waterSpray.getHead();
+    final WaterBottle body = waterSpray.getBody();
+
+    int water = body.getRemainingWater();
+    head.spray();
+    water -= body.getRemainingWater();
+
+    this.dailyWaterReceived += water;
+}
+```
+
+- 물 용량 확인
+    - 분무기에서 몸통을 가져온다.
+    - 거기서 남은 용량을 확인
+- 분무
+    - 분무기에서 머리를 가져온다.
+    - spray()를 호출한다.
+
+위의 코드는 `spray()` 메서드에 오류가 있어 컴파일되지 않는다. 물을 뿌리려고 '머리에 물을 뿌리라' 메시지를 보내지만 실제 물은 몸통에 있다.
+
+결과적으로 spray() 메서드는 몸통을 알아야만 한다. 코드를 다시 한번 수정하자.
+
+- SprayBottle
+    - reduceWater() 메서드 추가
+SprayHead
+    - spray() 메서드 삭제
+    - sprayFrom(SprayBottle) 메서드 추가

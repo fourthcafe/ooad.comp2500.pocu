@@ -1,36 +1,27 @@
 package dev.fourthcafe.objectmodeling;
 
 public class WaterSpray {
-	private final int capacity;
-	private int remainingWaterInMl = 0;
+	private SprayHead head;
+	private SprayBottle body;
 
-	public WaterSpray(int capacity) {
-		this.capacity = capacity;
+	public WaterSpray(SprayHead head, SprayBottle body) {
+		this.head = head;
+		this.body = body;
 	}
 
-
-	public int getCapacity() {
-		return capacity;
+	public SprayHead getHead() {
+		return head;
 	}
 
-
-	public int getRemainingWaterInMl() {
-		return remainingWaterInMl;
+	public void setHead(SprayHead head) {
+		this.head = head;
 	}
 
-
-	void addWater(int amountInMl) {
-		this.remainingWaterInMl += amountInMl;
-		this.remainingWaterInMl = Math.min(this.remainingWaterInMl, capacity);
+	public SprayBottle getBody() {
+		return body;
 	}
 
-
-	void spray() {
-		this.remainingWaterInMl -= Math.min(this.remainingWaterInMl, 5);
-	}
-
-
-	void fillUp() {
-		this.remainingWaterInMl = capacity;
+	public void setBody(SprayBottle body) {
+		this.body = body;
 	}
 }

@@ -6,9 +6,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class ApplicationTest {
 	@Test
-	public void 분무기를_줄테니_화분이_알아서_뿌려라() {
-		final WaterSpray waterSpray = new WaterSpray(100);
-		waterSpray.fillUp();
+	public void 분무기를_머리와_몸통으로_분리하여_구현() {
+		SprayHead head = new SprayHead(5);
+		SprayBottle body = new SprayBottle(100);
+		body.fillUp();
+
+		WaterSpray waterSpray = new WaterSpray(head, body);
 
 		final FlowerPot pot = new FlowerPot(10);
 
