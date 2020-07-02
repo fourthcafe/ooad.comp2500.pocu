@@ -33,12 +33,4 @@ public class WaterSpray {
 	void fillUp() {
 		this.remainingWaterInMl = capacity;
 	}
-
-
-	public void sprayTo(FlowerPot pot) {
-		final int amountWater = Math.min(this.remainingWaterInMl, 5);
-		pot.addWater(amountWater);
-
-		this.remainingWaterInMl -= amountWater;
-	}
 }
