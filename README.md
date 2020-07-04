@@ -682,3 +682,72 @@ void update() {
 
 **유연성은 필요하면 만드는 것**이다. 필요하지 않다면 만들지 않는 게 좋다.
 
+## 모델링 8: 다시 사용성 높이기
+다시 화분 문제 돌아가자. 그렇다면 머리랑 몸통을 없애고 다시 하나 가야하나? 좀 복잡하지만 이것 저것 섞어 쓸 수 있어서 그 부분은 좋았었는데 말이다. 재사용성을 유지하면서 해결하는 법을 알아보자.
+
+### 두 마리 토끼를 다 잡아보자
+아까 봤던 문제를 정리하고 하나씩 해결해보자.
+
+- 머리와 몸통을 따로 만들어야 한다.
+- 분무기에서 곧바로 분무를 못한다.
+
+### 머리와 몸통을 따로 만들어야 한다.
+- 티셔츠 크기의 개념을 차용해보자. S, M, L 처럼 규격을 정해두고 사용하는 방식이다. 물을 분사하는 속도(양)이 다른 head 와 물을 담고 있는 양이 다른 bottle 을 구현한다.
+
+```java
+public enum SprayHeadSpeed {
+    SLOW,
+    MEDIUM,
+    FAST
+}
+
+
+public enum BottleSize {
+    SMALL,
+    MEDIUM,
+    LARGE
+}
+```
+
+WaterSpray 에 새로운 생성자를 추가한다. 이를 사용해서 미리 준비된 사이즈의 WaterSpray 를 생성할 수 있다. 첫번째 생성자를 사용해서 기존 방식대로 WaterSpray 를 생성할 수도 있게 하여 재사용성도 유지했다.
+
+```text
+WaterSpray
+==========
+-head: SprayHead
+-body: SprayBottle
+----------
++WaterSpray(SprayHead, SprayBottle)
++WaterSpray(SprayHeadSpeed, BottleSize)
+```
+
+이를 통해 호출자에서는 다음처럼 WaterSpray 를 생성할 수 있다. 이제 물통 용량이 정확히 몇 ml인지 몰라도 된다.
+
+```java
+WaterSpray smallAndFast = new WaterSpray(SprayHeadSpeed.FAST, BottleSize.SMALL);
+WaterSpray largeAndSlow = new WaterSpray(SprayHeadSpeed.SLOW, BottleSize.LARGE);
+```
+
+### 분무기에서 곧바로 분무를 못한다.
+머리와 물통을 가져와서 분무를 해야하는, 이상한 방식을 고쳐보자. WaterSpray 에 메시지를 주면 내부에서 head 와 body 이 메서드를 릴레이로 호출하는 방식으로 변경한다.
+
+```java
+public int getRemainingWater() {
+    return this.body.getRemainingWater();
+}
+
+
+public void addWater(int milliliter) {
+    this.body.addWater(milliliter);
+}
+```
+
+이렇게 고치면 `spray()` 메서드가 다음처럼 간단해진다.
+
+```java
+public void spray() {
+    this.head.sprayFrom(this.body);
+}
+```
+
+FlowerPot 의 addWater() 도 간단해진다.
