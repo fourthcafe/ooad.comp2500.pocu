@@ -19,12 +19,9 @@ public class FlowerPot {
 
 
 	public void addWater(WaterSpray waterSpray) {
-		final SprayHead head = waterSpray.getHead();
-		final SprayBottle body = waterSpray.getBody();
-
-		int water = body.getRemainingWater();
-		head.sprayFrom(body);
-		water -= body.getRemainingWater();
+		int water = waterSpray.getRemainingWater();
+		waterSpray.spray();
+		water -= waterSpray.getRemainingWater();
 
 		this.dailyWaterReceived += water;
 	}

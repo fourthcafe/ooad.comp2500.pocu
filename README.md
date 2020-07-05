@@ -655,3 +655,129 @@ void update() {
 3. 어느 정도의 유연성이 필요한지는 각 프로젝트마다 다름
 
 말하고 싶은 요지는 **필요에 따라 유연성을 유연하게 조정**하라는 것이다. 일반적으로는 재사용성을 포기하고 성능과 가독성을 높이는 경우가 더 많다. 재사용성이 높은 게 최고가 아니다.
+
+
+## 기본기의 중요성
+개체 모델링 시 유연성을 보기 전에 한가지 더 신경써야 할 것을 보자.
+
+### OOP 공부 가이드라인
+기본기 없이 유연성만 고려한 프로그래밍은 결국엔 무너진다. 복잡한 것 때문에 사람들이 이해할 수 없는 코드가 만들어지게 되고 결국엔 무너진다.
+
+1. 프로그래머의 기본 자세를 확실히 잡자.
+	1. 읽기 명확한 코드 만들기
+		- 이게 가장 우선이다. 이게 된 이 후에 유연성이 필요한 부분에 도입하는 거다.
+	2. 실수를 저지르기 어려운 코드 만들기
+		- 유연성이 많아질수록 추상적(일반적)이기 때문에 실수가 많아질 수 밖에 없다. 어떤 문제가 있을 시 그 문제를 해결하기 위한 코드를 만드는 것이 더 중요하다.
+	3. 문제를 해결하는 코드 만들기
+		- 우선 유연성 없이 문제를 해결한 후에 유연성이 없어서 문제가 발생하면 그 때 도입하자.
+	4. 문제가 생기면 디버깅
+		- 문제가 생기면 디버깅을 하자. 디버깅 없이 '품질이 좋아지는 방법' 이라는 다른 것들을 하게 되면 품질이 좋아지는 게 아니라 코드가 읽기 어려워져 아무도 손을 못 대는 코드, 버그가 있어도 있는지조차 모르는 코드가 생길 수 있다.
+
+'생성자 만들지 말아라, setter 만들지 말아라' 와 같이 기초 OOP 개념들이 이런 자세를 잡는데 도움이 된다.
+
+2. 필요에 따라 점점 유연성을 키우는 법을 배워 나가기
+- 클래스를 만들 때마다 '이 부분은 재활용하면 좋겠다' 라고 생각하게 되는 부분이 보이면 그런 곳에서부터 유연성을 키워 나가자. 특히 유연성이 중요해지는 것은 **다형성** 부분이다. 지금 말하고 있는 유연성과 다른 유연성인데 그 부분을 더 신경써야 하지 단순히 클래스를 작게 만드는 유연성을 큰 의미가 없을 수도 있다.
+
+공든 탑은 쉽게 무너지지 않는다. 기본기부터 제대로 쌓아서 개체지향 모델링 실력을 올리자. 그래야 유연성이 없으면 작동하기 어려운 문제를 마주했을 때 쉽게 풀면서도 유연성을 높이느라 가독성이 떨어진 코드를 쉽게 읽을 수 있다.
+
+**유연성은 필요하면 만드는 것**이다. 필요하지 않다면 만들지 않는 게 좋다.
+
+## 모델링 8: 다시 사용성 높이기
+다시 화분 문제 돌아가자. 그렇다면 머리랑 몸통을 없애고 다시 하나 가야하나? 좀 복잡하지만 이것 저것 섞어 쓸 수 있어서 그 부분은 좋았었는데 말이다. 재사용성을 유지하면서 해결하는 법을 알아보자.
+
+### 두 마리 토끼를 다 잡아보자
+아까 봤던 문제를 정리하고 하나씩 해결해보자.
+
+- 머리와 몸통을 따로 만들어야 한다.
+- 분무기에서 곧바로 분무를 못한다.
+
+### 머리와 몸통을 따로 만들어야 한다.
+- 티셔츠 크기의 개념을 차용해보자. S, M, L 처럼 규격을 정해두고 사용하는 방식이다. 물을 분사하는 속도(양)이 다른 head 와 물을 담고 있는 양이 다른 bottle 을 구현한다.
+
+```java
+public enum SprayHeadSpeed {
+    SLOW,
+    MEDIUM,
+    FAST
+}
+
+
+public enum BottleSize {
+    SMALL,
+    MEDIUM,
+    LARGE
+}
+```
+
+WaterSpray 에 새로운 생성자를 추가한다. 이를 사용해서 미리 준비된 사이즈의 WaterSpray 를 생성할 수 있다. 첫번째 생성자를 사용해서 기존 방식대로 WaterSpray 를 생성할 수도 있게 하여 재사용성도 유지했다.
+
+```text
+WaterSpray
+==========
+-head: SprayHead
+-body: SprayBottle
+----------
++WaterSpray(SprayHead, SprayBottle)
++WaterSpray(SprayHeadSpeed, BottleSize)
+```
+
+이를 통해 호출자에서는 다음처럼 WaterSpray 를 생성할 수 있다. 이제 물통 용량이 정확히 몇 ml인지 몰라도 된다.
+
+```java
+WaterSpray smallAndFast = new WaterSpray(SprayHeadSpeed.FAST, BottleSize.SMALL);
+WaterSpray largeAndSlow = new WaterSpray(SprayHeadSpeed.SLOW, BottleSize.LARGE);
+```
+
+### 분무기에서 곧바로 분무를 못한다.
+머리와 물통을 가져와서 분무를 해야하는, 이상한 방식을 고쳐보자. WaterSpray 에 메시지를 주면 내부에서 head 와 body 이 메서드를 릴레이로 호출하는 방식으로 변경한다.
+
+```java
+public int getRemainingWater() {
+    return this.body.getRemainingWater();
+}
+
+
+public void addWater(int milliliter) {
+    this.body.addWater(milliliter);
+}
+```
+
+이렇게 고치면 `spray()` 메서드가 다음처럼 간단해진다.
+
+```java
+public void spray() {
+    this.head.sprayFrom(this.body);
+}
+```
+
+FlowerPot 의 addWater() 도 간단해진다.
+
+
+## POCU Tunes
+Playlist 클래스의 `removeSong` 메서드는 수행 후 `boolean` 값을 리턴한다. 앞서 메서드 수행 후, 그 수행과 관련없는 값을 반환하는 것은 명백하지 않다고 했었다. 하지만 이 경우에는 노래를 제거하는데 성공하면 true, 실패 시 false 를 반환한다는 것을 일반적으로 생각할 수 있기에 boolean 리턴의 경우 허용한다. 
+
+```java
+public boolean removeSong(String songName) {
+	for (Playlist playlist : this.playlists) {
+		playlist.removeSong(songName);
+	}
+
+	Song songOrNull  = findSongOrNull(songName);
+
+	if (songOrNull == null) {
+		return false;
+	}
+
+	this.songs.remove(songOrNull);
+	return true;
+}
+```
+
+다른 클래스를 사용하여 새 클래스를 만드는 예. 엄밀하게 말하면 연관(association)인데, 보통 집합과 컴포지션을 포함해서 컴포지션이라 말하는 경우가 많다.
+
+```java
+public class PocuTunes {
+	private ArrayList<Song> songs;
+	private ArrayList<Playlist> playlists;
+}
+```

@@ -22,4 +22,20 @@ public class ApplicationTest {
 		pot.liveAnotherDay();
 		assertThat(pot.isAlive()).isTrue();
 	}
+
+
+	@Test
+	public void 모델링_8_다시_사용성_높이기() {
+		WaterSpray spray = new WaterSpray(SprayHeadSpeed.MEDIUM, BottleSize.MEDIUM);
+		spray.fillUp();
+
+		final FlowerPot pot = new FlowerPot(10);
+
+		for (int i = 0; i < 2; ++i) {
+			pot.addWater(spray);
+		}
+
+		pot.liveAnotherDay();
+		System.out.printf("pot alive? %s", pot.isAlive());
+	}
 }
