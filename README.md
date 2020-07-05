@@ -751,3 +751,33 @@ public void spray() {
 ```
 
 FlowerPot 의 addWater() 도 간단해진다.
+
+
+## POCU Tunes
+Playlist 클래스의 `removeSong` 메서드는 수행 후 `boolean` 값을 리턴한다. 앞서 메서드 수행 후, 그 수행과 관련없는 값을 반환하는 것은 명백하지 않다고 했었다. 하지만 이 경우에는 노래를 제거하는데 성공하면 true, 실패 시 false 를 반환한다는 것을 일반적으로 생각할 수 있기에 boolean 리턴의 경우 허용한다. 
+
+```java
+public boolean removeSong(String songName) {
+	for (Playlist playlist : this.playlists) {
+		playlist.removeSong(songName);
+	}
+
+	Song songOrNull  = findSongOrNull(songName);
+
+	if (songOrNull == null) {
+		return false;
+	}
+
+	this.songs.remove(songOrNull);
+	return true;
+}
+```
+
+다른 클래스를 사용하여 새 클래스를 만드는 예. 엄밀하게 말하면 연관(association)인데, 보통 집합과 컴포지션을 포함해서 컴포지션이라 말하는 경우가 많다.
+
+```java
+public class PocuTunes {
+	private ArrayList<Song> songs;
+	private ArrayList<Playlist> playlists;
+}
+```
